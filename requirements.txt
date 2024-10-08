@@ -1,0 +1,11 @@
+fastapi==0.95.1
+uvicorn==0.22.0
+websockets==11.0.3
+requests==2.31.0
+python-dotenv==1.0.0
+pydub=0.25.1
+suapabase=2.8.1
+export PYTHONPATH=$PYTHONPATH:/Users/anusheel/desktop/airadio/  
+lsof -i :8000
+kill -9 <PID>
+pkill -f "uvicorn"

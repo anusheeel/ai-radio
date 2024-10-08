@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+/venv/
+/.env
+/database/.env
+/api_clients/.env
+anusheel.wav
+en-au.wav
+en-br.wav
+MeloTTS/
+en-default.wav
+en-india.wav
+en-us.wav
+output.wav
+
+*.log
