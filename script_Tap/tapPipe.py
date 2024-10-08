@@ -15,7 +15,7 @@ def tapPipe(data):
             content = content_match.group(1)
             # Clean up any potential escaped characters or formatting issues
             cleaned_script_dialogue = content.strip().replace('\\n', '\n').replace('\\"', '"')
-            return speaker1(cleaned_script_dialogue)
+            return cleaned_script_dialogue
         else:
             raise ValueError("Content field not found")
 

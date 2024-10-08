@@ -2,6 +2,7 @@ import asyncio
 import uvicorn
 import random
 from fastapi import FastAPI, WebSocket
+from audioPlayer.audioPlayer import playAudio
 from personalities.base_personality import start_conversation, handle_ai_response, get_context, generate_prompt, update_context
 from script_Tap.tapPipe import tapPipe
 app = FastAPI()
@@ -49,7 +50,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Receive message from this client
                     data = await websocket.receive_text()
                     print(data)
-                    #tapPipe(data)            
+                    dialouge = tapPipe(data) 
+                    playAudio(dialouge)
                     # Determine the speaker name based on turn
                     speaker = "humanGPT" if current_turn == 0 else "humanClaude"
                     handle_ai_response(context_id, data, speaker)
