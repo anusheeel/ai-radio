@@ -2,7 +2,7 @@ import asyncio
 import uvicorn
 import random
 from fastapi import FastAPI, WebSocket
-from audioPlayer.audioPlayer import playAudio
+from audio_player.audio_player import play_audio_sync
 from personalities.base_personality import start_conversation, handle_ai_response, get_context, generate_prompt, update_context
 from script_Tap.tapPipe import tapPipe
 app = FastAPI()
@@ -34,7 +34,7 @@ async def websocket_endpoint(websocket: WebSocket):
         
         # Ensure the first message goes to the first client
         if client_index == 0:
-            initial_message = ("Welcome to the AI Radio Show! Today, our topic is 'Nepal, The country of mountains'. "
+            initial_message = ("Welcome to the AI Radio Show! Today, our topic is 'AI Radio, The 360 degree platform of entertainment'. "
                                "humanGPT, please start by introducing yourself briefly and then prompt humanClaude for their thoughts on the day's topic.")
             print(f"Sending initial message to first client: {initial_message}")
             await websocket.send_text(initial_message)
@@ -50,8 +50,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Receive message from this client
                     data = await websocket.receive_text()
                     print(data)
-                    dialouge = tapPipe(data) 
-                    playAudio(dialouge)
+                    dialogue = tapPipe(data) 
+                    # Wait for the current dialogue to be fully played
+                    await play_and_wait(dialogue)
                     # Determine the speaker name based on turn
                     speaker = "humanGPT" if current_turn == 0 else "humanClaude"
                     handle_ai_response(context_id, data, speaker)
@@ -74,6 +75,16 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         connected_clients.remove(websocket)
         print(f"Client disconnected. Remaining clients: {len(connected_clients)}")
+async def play_and_wait(dialogue):
+    """
+    Play the dialogue and wait for it to complete before proceeding to the next.
+    """
+    try:
+        print(f"Playing dialogue: {dialogue}")
+        await asyncio.to_thread(play_audio_sync, dialogue)  # Ensures playAudio runs synchronously and we wait for completion
+        print("Finished playing audio")
+    except Exception as e:
+        print(f"Error playing audio: {e}")
 
 async def broadcast_message(message):
     global current_turn
@@ -86,12 +97,13 @@ async def broadcast_message(message):
         
         # Send the message to the appropriate client
         await connected_clients[next_client_index].send_text(message)
+
 if __name__ == "__main__":
     uvicorn.run(
-        "your_app_file:app",
+        "orchestrator.main:app",
         host="127.0.0.1",
         port=8000,
         reload=True,
-        timeout_keep_alive=300,  # Increase the keep-alive timeout
+        timeout_keep_alive=300,  # Increase keep-alive timeout
         log_level="info"
     )

@@ -17,7 +17,7 @@ def connect_claude_via_openrouter(message):
             "X-Title": YOUR_APP_NAME,  # Optional. Shows in rankings on openrouter.ai.
         },
         data=json.dumps({
-            "model": "thedrummer/rocinante-12b",  # Optional
+            "model": "anthropic/claude-3-haiku",  # Optional
             "messages": [
                 {
                     "role": "user",

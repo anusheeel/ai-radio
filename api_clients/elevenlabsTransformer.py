@@ -1,5 +1,5 @@
 from elevenlabs import ElevenLabs, VoiceSettings
-from audioPlayer.audioPlayer import playAudio
+from audio_player.audio_player import play_audio
 from dotenv import load_dotenv
 import os
 import requests

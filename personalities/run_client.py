@@ -3,6 +3,8 @@ import subprocess
 
 async def run_client(script_name):
     # Use subprocess to run the client
+    # Use subprocess to run the client
+    print(f"Running client: {script_name}")
     process = await asyncio.create_subprocess_exec(
         'python3', script_name,
         stdout=subprocess.PIPE,
@@ -26,8 +28,8 @@ async def run_client(script_name):
 async def main():
     # Run both clients concurrently
     await asyncio.gather(
-        run_client('personalities/claude_client.py'),
-        run_client('personalities/gpt_client.py')
+        run_client('personalities/gpt_client.py'),
+        run_client('personalities/claude_client.py')
     )
 
 if __name__ == '__main__':

@@ -5,9 +5,9 @@ from database.context_manager import get_context, update_context
 from database.connectSupaBase import get_supabase_client
 
 supabase = get_supabase_client()
-
+file_path = "/knowledgeBase"
 class RadioDirector:
-    def __init__(self, knowledge_base_dir="knowledgeBase/"):
+    def __init__(self, knowledge_base_dir="./knowledgeBase/"):
         self.knowledge_base_dir = knowledge_base_dir
         self.knowledge = self.load_knowledge()
 
