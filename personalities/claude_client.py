@@ -6,7 +6,7 @@ from api_clients.elevenlabsTransformer import textSpeech
 
 
 async def connect_to_server():
-    uri = "ws://localhost:8000/ws"
+    uri = "ws://127.0.0.1:8000/ws"
     print("Attempting to connect to WebSocket server...")
     try:
         async with websockets.connect("ws://127.0.0.1:8000/ws", ping_interval=20, ping_timeout=30) as websocket:
