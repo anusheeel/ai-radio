@@ -1,13 +1,12 @@
 import uuid
 from database.connectSupaBase import get_supabase_client
-
-supabase = get_supabase_client()
-
-# Template for generating AI prompts
 DEFAULT_PROMPT_TEMPLATE = (
     "This is the context: {history}. "
     "Now, you are a co-host. Based on the context provided, generate a swift, short, and engaging reply."
 )
+
+supabase = get_supabase_client()
+
 
 def create_context(personality_name,AI_PERSONALITIES):
     context_id = str(uuid.uuid4())

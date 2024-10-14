@@ -23,6 +23,11 @@ AI_PERSONALITIES = {
     },
     # Add more personalities as required
 }
+# Template for generating AI prompts
+DEFAULT_PROMPT_TEMPLATE = (
+    "This is the context: {history}. "
+    "Now, you are a co-host. Based on the context provided, generate a swift, short, and engaging reply."
+)
 
 
 PROMPT_TEMPLATES = {
@@ -53,8 +58,9 @@ director = RadioDirector()
 def generate_prompt(context, guidance=None):
     # Trim conversation history to last 5 exchanges or a maximum of 500 characters
     history_text = " ".join([f"{message['speaker']}: {message['message']}" for message in context["history"][-5:]])
+    history = " ".join([f"{message['speaker']}: {message['message']}" for message in context["history"]])
+    #print(f"------getting context:{history_text}")
     trimmed_history = trim_context(history_text, max_length=500)
-    
     # Use RadioDirector to mediate and analyze the conversation
     director_output = director.mediate_conversation(context)
     current_guidance = director_output.get("guidance", {})
@@ -68,8 +74,11 @@ def generate_prompt(context, guidance=None):
     next_speaker = "humanGPT" if next_turn == "AI1" else "humanClaude"
     
     # Build the prompt based on context, guidance, and topic
+    #print(f"This is the context of the conversation on the topic '{current_topic}': {trimmed_history}")
+    prompt = DEFAULT_PROMPT_TEMPLATE.format(history=history)
     prompt = f"This is the context of the conversation on the topic '{current_topic}': {trimmed_history}\n"
     prompt += f"Guidance: {current_guidance}\n"
+    prompt += f"Try to main the awareness of you having conversation with someone. Acknowledge their presence and generate prompt as if you are talking not writing.\n"
     # In the generate_prompt function
     prompt += f"{next_speaker}, you are the next speaker. Only respond as {next_speaker} and do not attempt to generate content for other speakers.\n"
     
@@ -97,30 +106,32 @@ def sanitize_message_content(content):
     return content
 
 def handle_ai_response(context_id, ai_response, speaker):
-    current_context = get_context(context_id)
-    #print(f"Current context before update: {current_context}")
+    """
+    Handles both AI response from the API and simple string messages, updates context, 
+    and manages conversation flow.
     
-    # Log the raw AI response for debugging
-    #print(f"Raw AI response: {ai_response}")
-    ai_response = normalize_ai_response(ai_response)
+    Parameters:
+    - context_id (str): The ID of the current conversation context.
+    - ai_response (dict or str): The AI response, either as a structured dictionary from API or a plain string.
+    - speaker (str): The name of the AI speaker (e.g., humanGPT, humanClaude, system).
+    """
+    current_context = get_context(context_id)
     
     try:
-        # Check if ai_response is a dict (expected structured response)
-        if isinstance(ai_response, dict) and "choices" in ai_response:
-            # Extract the 'content' from the 'choices' field
-            choices = ai_response['choices']
-            if len(choices) > 0 and 'message' in choices[0]:
-                message_content = choices[0]['message']['content']
-            else:
-                raise ValueError("AI response 'choices' array is empty or missing 'message'.")
-        
-        # If ai_response is plain text, treat it directly as content
-        elif isinstance(ai_response, str):
-            message_content = ai_response.strip()
+        # Check if the ai_response is a string (initial message or any plain message)
+        if isinstance(ai_response, str):
+            message_content = ai_response.strip()  # For plain string messages
+
+        # Otherwise, handle it as a structured API response (dict)
+        elif isinstance(ai_response, dict):
+            message_content = ai_response.get('message_content', '')
+
+            if not message_content:
+                raise ValueError(f"Message content is missing in the AI response.:{ai_response}")
 
         else:
-            raise ValueError("AI response structure is not as expected.")
-
+            raise ValueError("Unsupported AI response format. Expected a string or a dictionary.")
+        
         # Append the relevant message content to context history
         new_message = {"speaker": speaker, "message": message_content}
         current_context["history"].append(new_message)
@@ -136,14 +147,15 @@ def handle_ai_response(context_id, ai_response, speaker):
 
         # Save the updated context
         update_context(context_id, updated_data)
-        #print(f"Context after update: {get_context(context_id)}")
+        print(f"Context updated successfully with message from {speaker}")
 
     except (KeyError, IndexError, ValueError) as e:
         # Handle error with parsing and provide a default error message
-        print(f"Failed to parse AI response JSON: {e}")
+        print(f"Failed to handle AI response: {e}")
         # Append an error message to the context history
-        current_context["history"].append({"speaker": "system", "message": "ERROR: Failed to parse AI response."})
+        current_context["history"].append({"speaker": "system", "message": "ERROR: Failed to handle AI response."})
         update_context(context_id, {"history": current_context["history"]})
+
 
 def normalize_ai_response(ai_response):
     # If ai_response is a string, wrap it in a dict structure
@@ -182,8 +194,6 @@ def normalize_ai_response(ai_response):
                 }
             ]
         }
-
-
     
 def determine_topic(history):
     """Simple function to determine conversation topic based on history."""

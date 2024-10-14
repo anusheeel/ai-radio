@@ -13,7 +13,7 @@ async def play_audio_sync(dialogue):
     try:
         print(f"Converting dialogue to audio: {dialogue}")
         mp3_fp = BytesIO()
-        tts = gTTS(dialogue[:500], lang='en')
+        tts = gTTS("hello", lang='en')
         tts.write_to_fp(mp3_fp)
         mp3_fp.seek(0)
         audio = AudioSegment.from_file(mp3_fp, format="mp3")

@@ -1,8 +1,10 @@
 import asyncio
 import websockets
+import json
 import traceback  # Import traceback to print the full error details
 from api_clients.connectGpt import connect_ChatGPTViaOpenRouter
 from api_clients.elevenlabsTransformer import textSpeech
+from script_Tap.cleanApiResponse import extract_relevant_information
 
 
 async def connect_to_server():
@@ -20,18 +22,21 @@ async def connect_to_server():
                 print(f"Received message: {message}")        
                 # Generate response using OpenAI or other LLM API
                 response = connect_ChatGPTViaOpenRouter(message)
-                print(f"Generated response: {response}")
                 #Check Response Type
                 print(f"Generated response: {response}, type: {type(response)}")
+                #cleanDictionary = extract_relevant_info(response)
                 #content = response["choices"][0]["message"]["content"].strip()
                 #audio = textSpeech(content,"9BWtsMINqrJLrRacOk9x")
                 # Send response back to the orchestrator
-                await websocket.send(str(response))
+                print("This is the raw type coming out from gpt client---------------")
+                print(type(response))
+                await websocket.send(json.dumps(response))
                 print("Response sent back to server.")
     except Exception as e:
         print(f"An error occurred: {e}")
         print("Full traceback:")
         traceback.print_exc()
+
 def main():
     asyncio.run(connect_to_server())
 main()

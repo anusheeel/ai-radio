@@ -3,6 +3,8 @@ import websockets
 import traceback  # Import traceback to print the full error details
 from api_clients.connectClaude import connect_claude_via_openrouter
 from api_clients.elevenlabsTransformer import textSpeech
+import json
+from script_Tap.cleanApiResponse import extract_relevant_information
 
 
 async def connect_to_server():
@@ -26,7 +28,9 @@ async def connect_to_server():
                 #content = response["choices"][0]["message"]["content"].strip()
                 #audio = textSpeech(content,"9BWtsMINqrJLrRacOk9x")
                 # Send response back to the orchestrator
-                await websocket.send(str(response))
+                print("This is the raw type coming out from claude client---------------")
+                print(type(response))
+                await websocket.send(json.dumps(response))
                 print("Response sent back to server.")
     except Exception as e:
         print(f"An error occurred: {e}")

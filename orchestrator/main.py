@@ -5,6 +5,9 @@ from fastapi import FastAPI, WebSocket
 from audio_player.audio_player import play_audio_sync
 from personalities.base_personality import start_conversation, handle_ai_response, get_context, generate_prompt, update_context
 from script_Tap.tapPipe import tapPipe
+from script_Tap.cleanApiResponse import extract_relevant_information
+
+from orchestrator.initializer import initialize
 app = FastAPI()
 connected_clients = []
 context_id = None
@@ -34,11 +37,12 @@ async def websocket_endpoint(websocket: WebSocket):
         
         # Ensure the first message goes to the first client
         if client_index == 0:
-            initial_message = ("Welcome to the AI Radio Show! Today, our topic is 'AI Radio, The 360 degree platform of entertainment'. "
-                               "humanGPT, please start by introducing yourself briefly and then prompt humanClaude for their thoughts on the day's topic.")
+            initial_message = ("Welcome to the AI Radio Show! Today, our topic is AI Radio. We will talk about How we can make this technology a revolutionary 360 audio entertainment platform.  "
+                               "humanGPT, please start by introducing yourself briefly and then prompt humanClaude for their thoughts on the day's topic. Make sure you dont hallucinate and pretend yourself to be next speaker")
+            #trigger_message = initialize()
             print(f"Sending initial message to first client: {initial_message}")
             await websocket.send_text(initial_message)
-            handle_ai_response(context_id, initial_message, "system")
+            handle_ai_response(context_id,initial_message,"system")
         
         # Main loop for conversation handling
         while True:
@@ -48,14 +52,16 @@ async def websocket_endpoint(websocket: WebSocket):
             if client_index == current_turn:
                 try:
                     # Receive message from this client
-                    data = await websocket.receive_text()
-                    print(data)
-                    dialogue = tapPipe(data) 
+                    data = await websocket.receive_json()
+                    relevantInfo = extract_relevant_information(data)
+                    print(f"this is the type returned by{personality_name}")
+                    print(relevantInfo)
+                    #dialogue = tapPipe(data) 
                     # Wait for the current dialogue to be fully played
-                    await play_and_wait(dialogue)
+                    #await play_and_wait(dialogue)
                     # Determine the speaker name based on turn
                     speaker = "humanGPT" if current_turn == 0 else "humanClaude"
-                    handle_ai_response(context_id, data, speaker)
+                    handle_ai_response(context_id, relevantInfo, speaker)
 
                     # Move to the next client's turn
                     current_turn = (current_turn + 1) % len(connected_clients)

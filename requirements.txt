@@ -5,7 +5,7 @@ requests==2.31.0
 python-dotenv==1.0.0
 pydub=0.25.1
 suapabase=2.8.1
-export PYTHONPATH=$PYTHONPATH:/Users/anusheel/Desktop/airadio/  
+export PYTHONPATH=$PYTHONPATH:/Users/anusheel/Desktop/airadio.pro/  
 lsof -i :8000
 kill -9 <PID>
 pkill -f "uvicorn"
